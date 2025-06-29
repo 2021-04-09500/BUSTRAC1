@@ -87,7 +87,7 @@ class _LoginPageState extends State<LoginPage> {
 
     setState(() => _isLoading = true);
 
-    final url = Uri.parse('http://192.168.0.11:8081/api/auth/login');
+    final url = Uri.parse('http://192.168.100.3:8081/api/auth/login');
 
     try {
       final response = await http.post(
@@ -137,7 +137,7 @@ class _LoginPageState extends State<LoginPage> {
       print('Navigating to HomePage with parentId: $parentId, token: $token');
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => HomePage(parentId: parentId, token: token!)),
+        MaterialPageRoute(builder: (_) => HomePage(parentId: parentId, token: token!, busId: '',)),
       );
     }
   }

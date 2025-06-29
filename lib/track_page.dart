@@ -1,141 +1,244 @@
+import 'dart:async';
+import 'dart:convert';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'dart:async';
-
+import 'package:url_launcher/url_launcher.dart';
 import 'messaging_page.dart';
 
 class TrackingPage extends StatefulWidget {
   final String token;
   final String parentId;
+  final String busId;
   final String busNo;
   final String driverName;
   final String driverPhone;
-  final int estimatedArrivalTime;
 
   const TrackingPage({
     super.key,
     required this.token,
     required this.parentId,
+    required this.busId,
     required this.busNo,
     required this.driverName,
     required this.driverPhone,
-    required this.estimatedArrivalTime,
   });
 
   @override
   State<TrackingPage> createState() => _TrackingPageState();
 }
 
-class _TrackingPageState extends State<TrackingPage> with TickerProviderStateMixin {
-  late GoogleMapController mapController;
+class _TrackingPageState extends State<TrackingPage> {
+  GoogleMapController? _mapController;
+  LatLng? _busLocation;
+  LatLng? _startLocation; // Route start
+  LatLng? _endLocation; // Route end (parent destination)
 
-  LatLng _currentBusLocation = const LatLng(-6.7924, 39.2083);
-  late Marker _busMarker;
-  final Marker _destinationMarker = const Marker(
-    markerId: MarkerId('destination'),
-    position: LatLng(-6.7824, 39.2183),
-    infoWindow: InfoWindow(title: 'Makumbusho Rd'),
-  );
+  Marker? _busMarker;
+  Marker? _startMarker;
+  Marker? _destinationMarker;
 
-  final Set<Polyline> _polylines = {
-    const Polyline(
-      polylineId: PolylineId('route'),
-      points: [
-        LatLng(-6.7924, 39.2083),
-        LatLng(-6.7874, 39.2133),
-        LatLng(-6.7824, 39.2183),
-      ],
-      color: Colors.blue,
-      width: 5,
-    ),
-  };
+  Polyline? _routePolyline;
+  Timer? _timer;
 
-  Timer? _fetchTimer;
+  String? _eta;
+  String? _distance;
 
   @override
   void initState() {
     super.initState();
-    _busMarker = Marker(
-      markerId: const MarkerId('bus'),
-      position: _currentBusLocation,
-      infoWindow: const InfoWindow(title: 'Bus Location'),
-    );
-    _startFetchingBusLocation();
+    _startTracking();
+    _timer = Timer.periodic(const Duration(seconds: 5), (_) => _startTracking());
   }
 
-  void _onMapCreated(GoogleMapController controller) {
-    mapController = controller;
-  }
+  Future<void> _startTracking() async {
+    await _fetchBusLocation();
+    await _fetchRoute();
+    await _fetchDistance();
 
-  void _startFetchingBusLocation() {
-    _fetchLatestLocation(); // Initial fetch
-    _fetchTimer = Timer.periodic(const Duration(seconds: 5), (_) {
-      _fetchLatestLocation();
-    });
-  }
-
-  Future<void> _fetchLatestLocation() async {
-    final url = Uri.parse('http://192.168.0.11:8081/bus/{id}/location'); // Replace with your backend endpoint
-    try {
-      final res = await http.get(
-        url,
-        headers: {
-          'Authorization': 'Bearer ${widget.token}',
-          'Content-Type': 'application/json',
-        },
-      );
-
-      if (res.statusCode == 200) {
-        final data = jsonDecode(res.body);
-        final lat = data['latitude'];
-        final lng = data['longitude'];
-
-        if (lat != null && lng != null) {
-          final newPosition = LatLng(lat, lng);
-          _animateBusMovement(_currentBusLocation, newPosition);
-          _currentBusLocation = newPosition;
-        }
-      }
-    } catch (e) {
-      print("Error fetching GPS: $e");
+    if (_busLocation != null && _endLocation != null) {
+      await _drawRouteAndCalculateETA();
     }
   }
 
-  void _animateBusMovement(LatLng from, LatLng to) {
-    final steps = 20;
-    final diffLat = (to.latitude - from.latitude) / steps;
-    final diffLng = (to.longitude - from.longitude) / steps;
+  Future<void> _fetchBusLocation() async {
+    final url = 'http://192.168.100.3:8081/api/bus/${widget.busId}/location';
+    final res = await http.get(
+      Uri.parse(url),
+      headers: {'Authorization': 'Bearer ${widget.token}'},
+    );
 
-    int count = 0;
-    Timer.periodic(const Duration(milliseconds: 100), (timer) {
-      if (count >= steps) {
-        timer.cancel();
-        return;
+    if (res.statusCode == 200) {
+      final data = jsonDecode(res.body);
+      final lat = (data['lat'] as num?)?.toDouble();
+      final lng = (data['lng'] as num?)?.toDouble();
+
+      if (lat != null && lng != null) {
+        setState(() {
+          _busLocation = LatLng(lat, lng);
+          _busMarker = Marker(
+            markerId: const MarkerId('bus'),
+            position: _busLocation!,
+            infoWindow: const InfoWindow(title: 'Bus Location'),
+            icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+          );
+        });
       }
-      final intermediate = LatLng(
-        from.latitude + (diffLat * count),
-        from.longitude + (diffLng * count),
-      );
+    }
+  }
 
-      setState(() {
-        _busMarker = Marker(
-          markerId: const MarkerId('bus'),
-          position: intermediate,
-          infoWindow: const InfoWindow(title: 'Bus Location'),
-        );
-      });
+  Future<void> _fetchRoute() async {
+    final url = 'http://192.168.100.3:8081/routes/by-bus/${widget.busId}';
+    final res = await http.get(
+      Uri.parse(url),
+      headers: {'Authorization': 'Bearer ${widget.token}'},
+    );
 
-      mapController.animateCamera(CameraUpdate.newLatLng(intermediate));
-      count++;
-    });
+    if (res.statusCode == 200) {
+      final data = jsonDecode(res.body);
+
+      final start = data['startLocation'];
+      final end = data['endLocation'];
+
+      if (start != null && end != null) {
+        final startLat = (start['latitude'] as num).toDouble();
+        final startLng = (start['longitude'] as num).toDouble();
+        final endLat = (end['latitude'] as num).toDouble();
+        final endLng = (end['longitude'] as num).toDouble();
+
+        setState(() {
+          _startLocation = LatLng(startLat, startLng);
+          _endLocation = LatLng(endLat, endLng);
+
+          _startMarker = Marker(
+            markerId: const MarkerId('start'),
+            position: _startLocation!,
+            infoWindow: const InfoWindow(title: 'Route Start'),
+            icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+          );
+
+          _destinationMarker = Marker(
+            markerId: const MarkerId('destination'),
+            position: _endLocation!,
+            infoWindow: const InfoWindow(title: 'Route End'),
+            icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+          );
+        });
+      }
+    } else {
+      print('Failed to load route data: ${res.statusCode}');
+    }
+  }
+
+  Future<void> _fetchDistance() async {
+  final url = 'http://192.168.100.3:8081/parents/distance-to-bus/${widget.busId}';
+  final res = await http.get(
+    Uri.parse(url),
+    headers: {'Authorization': 'Bearer ${widget.token}'},
+  );
+
+  if (res.statusCode == 200) {
+    final data = jsonDecode(res.body);
+
+    if (data != null) {
+      try {
+        final double distanceValue = (data as num).toDouble();
+        setState(() {
+          _distance = '${distanceValue.toStringAsFixed(2)} km';
+        });
+      } catch (e) {
+        print('Distance value cast error: $e');
+      }
+    } else {
+      print('Distance response was null');
+    }
+  } else {
+    print('Failed to fetch distance: ${res.statusCode}');
+  }
+}
+
+  Future<void> _drawRouteAndCalculateETA() async {
+    final origin = '${_busLocation!.latitude},${_busLocation!.longitude}';
+    final destination = '${_endLocation!.latitude},${_endLocation!.longitude}';
+    final apiKey = 'AIzaSyAQ-fKSiCLJsG9xc_T1WgAowRyaBqliJTg';
+
+    final url =
+        'https://maps.googleapis.com/maps/api/directions/json?origin=$origin&destination=$destination&key=$apiKey';
+
+    final res = await http.get(Uri.parse(url));
+    if (res.statusCode == 200) {
+      final data = jsonDecode(res.body);
+
+      if (data['routes'].isNotEmpty) {
+        final route = data['routes'][0];
+        final points = route['overview_polyline']['points'];
+        _eta = route['legs'][0]['duration']['text'];
+        _distance = route['legs'][0]['distance']['text'];
+
+        final coords = _decodePolyline(points);
+
+        setState(() {
+          _routePolyline = Polyline(
+            polylineId: const PolylineId('route'),
+            points: coords,
+            color: Colors.blue,
+            width: 6,
+          );
+        });
+
+        final bounds = _boundsFromLatLngList([_busLocation!, _endLocation!]);
+        _mapController?.animateCamera(CameraUpdate.newLatLngBounds(bounds, 100));
+      }
+    }
+  }
+
+  List<LatLng> _decodePolyline(String encoded) {
+    List<LatLng> polyline = [];
+    int index = 0, len = encoded.length;
+    int lat = 0, lng = 0;
+
+    while (index < len) {
+      int b, shift = 0, result = 0;
+      do {
+        b = encoded.codeUnitAt(index++) - 63;
+        result |= (b & 0x1F) << shift;
+        shift += 5;
+      } while (b >= 0x20);
+      int dlat = ((result & 1) != 0) ? ~(result >> 1) : (result >> 1);
+      lat += dlat;
+
+      shift = 0;
+      result = 0;
+      do {
+        b = encoded.codeUnitAt(index++) - 63;
+        result |= (b & 0x1F) << shift;
+        shift += 5;
+      } while (b >= 0x20);
+      int dlng = ((result & 1) != 0) ? ~(result >> 1) : (result >> 1);
+      lng += dlng;
+
+      polyline.add(LatLng(lat / 1E5, lng / 1E5));
+    }
+    return polyline;
+  }
+
+  LatLngBounds _boundsFromLatLngList(List<LatLng> list) {
+    final sw = LatLng(
+      list.map((p) => p.latitude).reduce(min),
+      list.map((p) => p.longitude).reduce(min),
+    );
+    final ne = LatLng(
+      list.map((p) => p.latitude).reduce(max),
+      list.map((p) => p.longitude).reduce(max),
+    );
+    return LatLngBounds(southwest: sw, northeast: ne);
   }
 
   @override
   void dispose() {
-    _fetchTimer?.cancel();
+    _timer?.cancel();
+    _mapController?.dispose();
     super.dispose();
   }
 
@@ -145,10 +248,19 @@ class _TrackingPageState extends State<TrackingPage> with TickerProviderStateMix
       body: Stack(
         children: [
           GoogleMap(
-            onMapCreated: _onMapCreated,
-            initialCameraPosition: CameraPosition(target: _currentBusLocation, zoom: 14.0),
-            markers: {_busMarker, _destinationMarker},
-            polylines: _polylines,
+            onMapCreated: (controller) => _mapController = controller,
+            initialCameraPosition: CameraPosition(
+              target: _busLocation ?? const LatLng(0, 0),
+              zoom: 14,
+            ),
+            markers: {
+              if (_busMarker != null) _busMarker!,
+              if (_startMarker != null) _startMarker!,
+              if (_destinationMarker != null) _destinationMarker!,
+            },
+            polylines: {
+              if (_routePolyline != null) _routePolyline!,
+            },
             myLocationEnabled: true,
             myLocationButtonEnabled: true,
             zoomControlsEnabled: true,
@@ -170,11 +282,14 @@ class _TrackingPageState extends State<TrackingPage> with TickerProviderStateMix
               color: Colors.white,
               padding: const EdgeInsets.all(20.0),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Arriving in ${widget.estimatedArrivalTime} mins',
+                  Text('Tracking Bus ${widget.busNo}',
                       style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  if (_eta != null && _distance != null)
+                    Text('ETA: $_eta • Distance: $_distance',
+                        style: const TextStyle(fontSize: 16, color: Colors.green)),
                   const SizedBox(height: 10),
                   Row(
                     children: [

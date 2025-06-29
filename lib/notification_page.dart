@@ -4,10 +4,9 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 import 'home_page.dart';
-import 'stomp_websocket_service.dart'; // Updated import
+import 'stomp_websocket_service.dart';
 import 'track_page.dart';
 import 'account_page.dart';
-
 
 class NotificationPage extends StatefulWidget {
   final String token;
@@ -45,7 +44,6 @@ class _NotificationPageState extends State<NotificationPage> {
     _wsService.connect(
       token: widget.token,
       onMessage: (msg) {
-        // Avoid duplicate messages by checking ID or content
         if (!_messages.any((m) => m['id'] == msg['id'])) {
           setState(() {
             _messages.insert(0, msg);
@@ -56,7 +54,7 @@ class _NotificationPageState extends State<NotificationPage> {
   }
 
   Future<void> _fetchInitialMessages() async {
-    final url = Uri.parse('http://192.168.0.11:8081/messages/parent/broadcasts');
+    final url = Uri.parse('http://192.168.100.3:8081/messages/parent/broadcasts');
     try {
       final res = await http.get(url, headers: {
         'Authorization': 'Bearer ${widget.token}',
@@ -166,37 +164,37 @@ class _NotificationPageState extends State<NotificationPage> {
         selectedItemColor: Colors.orange,
         unselectedItemColor: Colors.grey,
         onTap: (i) {
-  if (i == 0) {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (_) => TrackingPage(
-          token: widget.token,
-          parentId: widget.parentId,
-          busNo: 'TXXXX', // Placeholder or pass real busNo if you have it
-          driverName: 'Driver Unknown',
-          driverPhone: '0000000000',
-          estimatedArrivalTime: 5,
-        ),
-      ),
-    );
-  } else if (i == 2) {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (_) => HomePage(token: widget.token, parentId: widget.parentId),
-      ),
-    );
-  } else if (i == 3) {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (_) => AccountPage(token: widget.token, parentId: widget.parentId,),
-      ),
-    );
-  }
-},
-
+          if (i == 0) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (_) => TrackingPage(
+                  token: widget.token,
+                  parentId: widget.parentId,
+                  busId: '680b6b964b3ec354b671fdd3', // hardcoded busId
+                  busNo: 'TXXXX',
+                  driverName: 'Unknown',
+                  driverPhone: '0000000000',
+                  // NO destinationLat or destinationLng here!
+                ),
+              ),
+            );
+          } else if (i == 2) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (_) => HomePage(token: widget.token, parentId: widget.parentId, busId: '',),
+              ),
+            );
+          } else if (i == 3) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (_) => AccountPage(token: widget.token, parentId: widget.parentId),
+              ),
+            );
+          }
+        },
       ),
     );
   }

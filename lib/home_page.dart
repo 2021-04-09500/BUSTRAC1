@@ -6,7 +6,6 @@ import 'track_page.dart';
 import 'notification_page.dart';
 import 'account_page.dart';
 
-// =================== Student Model ===================
 class Student {
   String id;
   String name;
@@ -51,12 +50,11 @@ class Student {
   }
 }
 
-// =================== Home Page ===================
 class HomePage extends StatefulWidget {
   final String parentId;
   final String token;
 
-  const HomePage({super.key, required this.parentId, required this.token});
+  const HomePage({super.key, required this.parentId, required this.token, required String busId});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -65,30 +63,29 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   late Future<List<Student>> studentDataFuture;
   int _currentIndex = 2;
-  Student? selectedStudent; // Store selected/default student
+  Student? selectedStudent;
+
+  final String hardcodedBusId = '680b6b964b3ec354b671fdd3';
 
   @override
   void initState() {
     super.initState();
-    studentDataFuture = fetchStudentData(widget.token);
+    studentDataFuture = fetchStudentData();
   }
 
-  Future<List<Student>> fetchStudentData(String token) async {
-    final url = Uri.parse('http://192.168.0.11:8081/students/my-students');
+  Future<List<Student>> fetchStudentData() async {
+    final url = Uri.parse('http://192.168.100.3:8081/students/my-students');
     try {
-      final response = await http.get(
-        url,
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer $token",
-        },
-      );
+      final response = await http.get(url, headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer ${widget.token}",
+      });
 
       if (response.statusCode == 200) {
         final List jsonList = jsonDecode(response.body);
         List<Student> students = jsonList.map((json) => Student.fromJson(json)).toList();
 
-        await Future.wait(students.map((student) => fetchAndAttachBusDetails(student, token)));
+        await Future.wait(students.map((s) => fetchAndAttachBusDetails(s)));
 
         if (students.isNotEmpty && selectedStudent == null) {
           selectedStudent = students.first;
@@ -103,67 +100,70 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Future<void> fetchAndAttachBusDetails(Student student, String token) async {
-    final url = Uri.parse('http://192.168.0.11:8081/buses/my-child-bus');
+  Future<void> fetchAndAttachBusDetails(Student student) async {
+    final url = Uri.parse('http://192.168.100.3:8081/buses/my-child-bus');
     try {
-      final response = await http.get(
-        url,
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer $token",
-        },
-      );
+      final response = await http.get(url, headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer ${widget.token}",
+      });
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
         student.updateBusDetails(jsonResponse);
       }
     } catch (e) {
-      print('Error fetching bus for student ${student.id}: $e');
+      print('Error fetching bus details: $e');
     }
+  }
+
+  void _navigateToTrackingPage(Student student) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => TrackingPage(
+          token: widget.token,
+          busId: hardcodedBusId,
+          busNo: student.busNo ?? 'TXXXX',
+          driverName: student.driverName ?? 'Unknown',
+          driverPhone: student.driverPhone ?? '0000000000',
+          parentId: widget.parentId,
+        ),
+      ),
+    );
   }
 
   void _onTabTapped(int index) {
     if (index == _currentIndex) return;
 
-    if (index == 0) {
-      if (selectedStudent != null) {
+    switch (index) {
+      case 0:
+        if (selectedStudent != null) {
+          _navigateToTrackingPage(selectedStudent!);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('No student data loaded yet')),
+          );
+        }
+        break;
+      case 1:
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => TrackingPage(
-              token: widget.token,
-              parentId: widget.parentId,
-              busNo: selectedStudent!.busNo ?? 'TXXXX',
-              driverName: selectedStudent!.driverName ?? 'Unknown',
-              driverPhone: selectedStudent!.driverPhone ?? '0000000000',
-              estimatedArrivalTime: 5,
-            ),
+            builder: (_) => NotificationPage(token: widget.token, parentId: widget.parentId),
           ),
         );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No student data loaded yet')),
+        break;
+      case 3:
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => AccountPage(token: widget.token, parentId: widget.parentId),
+          ),
         );
-      }
-    } else if (index == 1) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => NotificationPage(parentId: widget.parentId, token: widget.token),
-        ),
-      );
-    } else if (index == 3) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => AccountPage(parentId: widget.parentId, token: widget.token),
-        ),
-      );
-    } else {
-      setState(() {
-        _currentIndex = index;
-      });
+        break;
+      default:
+        setState(() => _currentIndex = index);
     }
   }
 
@@ -287,18 +287,7 @@ class _HomePageState extends State<HomePage> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.push(context, MaterialPageRoute(
-                          builder: (_) => TrackingPage(
-                            token: widget.token,
-                            parentId: widget.parentId,
-                            busNo: student.busNo ?? 'TXXXX',
-                            driverName: student.driverName ?? 'Unknown',
-                            driverPhone: student.driverPhone ?? '0000000000',
-                            estimatedArrivalTime: 5,
-                          ),
-                        ));
-                      },
+                      onPressed: () => _navigateToTrackingPage(student),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.orange,
                         padding: const EdgeInsets.symmetric(vertical: 14),

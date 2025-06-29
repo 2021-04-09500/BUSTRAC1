@@ -29,7 +29,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
   }
 
   Future<void> fetchParentData() async {
-    final url = Uri.parse('http://192.168.0.11:8081/parents/me');
+    final url = Uri.parse('http://192.168.100.3:8081/parents/me');
     try {
       final response = await http.get(
         url,
@@ -61,7 +61,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
   Future<void> updateParentData() async {
     if (parentData == null) return;
 
-    final url = Uri.parse('http://192.168.0.11:8081/parents/update'); // 👈 Changed endpoint
+    final url = Uri.parse('http://192.168.100.3:8081/parents/update'); // 👈 Changed endpoint
     final updatedData = {
       "id": parentData!['id'], // 👈 Include ID in payload if your backend requires it
       "name": _nameController.text.trim(),

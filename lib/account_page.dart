@@ -29,7 +29,7 @@ class _AccountPageState extends State<AccountPage> {
   }
 
   Future<void> fetchParentDetails() async {
-    final url = Uri.parse('http://192.168.0.11:8081/parents/me');
+    final url = Uri.parse('http://192.168.100.3:8081/parents/me');
 
     try {
       final response = await http.get(
@@ -69,7 +69,7 @@ class _AccountPageState extends State<AccountPage> {
     if (updatedName.isEmpty || parentData == null) return;
 
     final parentId = parentData!['id'];
-    final url = Uri.parse('http://192.168.0.11:8081/parents/$parentId');
+    final url = Uri.parse('http://192.168.100.3:8081/parents/$parentId');
     final body = jsonEncode({"name": updatedName});
 
     try {
@@ -206,7 +206,7 @@ class _AccountPageState extends State<AccountPage> {
           if (index == 2) {
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => HomePage(parentId: parentId, token: widget.token)),
+              MaterialPageRoute(builder: (context) => HomePage(parentId: parentId, token: widget.token, busId: '',)),
             );
           }
         },
