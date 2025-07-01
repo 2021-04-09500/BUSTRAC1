@@ -74,11 +74,11 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<List<Student>> fetchStudentData() async {
-    final url = Uri.parse('http://192.168.100.9:8081/students/my-students');
+    final url = Uri.parse('http://192.168.100.9:8081/students/my-students');//SEND HTTO get REQUEST to backend server
     try {
       final response = await http.get(url, headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer ${widget.token}",
+        "Content-Type": "application/json",// stating that JSON structure data is expected
+        "Authorization": "Bearer ${widget.token}",// added for authentication by backend server
       });
 
       if (response.statusCode == 200) {

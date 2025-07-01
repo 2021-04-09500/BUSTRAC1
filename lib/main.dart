@@ -72,7 +72,7 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController emailController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController(); //to connect with textfield so as to read, set or clear text
   bool _obscureText = true;
   bool _isLoading = false;
 
