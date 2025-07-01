@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class BusService {
-  static const String baseUrl = "http://192.168.100.3:8081"; // Adjust if needed
+  static const String baseUrl = "http://192.168.100.9:8081"; // Adjust if needed
 
   static Future<Map<String, String>> getBusDetailsByStudentId(String studentId) async {
     final url = '$baseUrl/buses/student/$studentId';

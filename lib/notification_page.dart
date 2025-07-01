@@ -54,7 +54,7 @@ class _NotificationPageState extends State<NotificationPage> {
   }
 
   Future<void> _fetchInitialMessages() async {
-    final url = Uri.parse('http://192.168.100.3:8081/messages/parent/broadcasts');
+    final url = Uri.parse('http://192.168.100.9:8081/messages/parent/broadcasts');
     try {
       final res = await http.get(url, headers: {
         'Authorization': 'Bearer ${widget.token}',

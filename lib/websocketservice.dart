@@ -14,7 +14,7 @@ class WebSocketService {
   }) {
     _client = StompClient(
       config: StompConfig.SockJS(
-        url: 'http://192.168.100.3:8081/ws',
+        url: 'http://192.168.100.9:8081/ws',
         onConnect: (StompFrame frame) {
           print('✅ Connected to STOMP WebSocket');
 

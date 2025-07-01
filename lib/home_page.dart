@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-
+import 'report_page.dart';
 import 'track_page.dart';
 import 'notification_page.dart';
 import 'account_page.dart';
@@ -74,7 +74,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<List<Student>> fetchStudentData() async {
-    final url = Uri.parse('http://192.168.100.3:8081/students/my-students');
+    final url = Uri.parse('http://192.168.100.9:8081/students/my-students');
     try {
       final response = await http.get(url, headers: {
         "Content-Type": "application/json",
@@ -101,7 +101,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> fetchAndAttachBusDetails(Student student) async {
-    final url = Uri.parse('http://192.168.100.3:8081/buses/my-child-bus');
+    final url = Uri.parse('http://192.168.100.9:8081/buses/my-child-bus');
     try {
       final response = await http.get(url, headers: {
         "Content-Type": "application/json",
@@ -129,6 +129,15 @@ class _HomePageState extends State<HomePage> {
           driverPhone: student.driverPhone ?? '0000000000',
           parentId: widget.parentId,
         ),
+      ),
+    );
+  }
+
+  void _navigateToReportPage() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ReportPage(token: widget.token, parentId: widget.parentId),
       ),
     );
   }
@@ -294,6 +303,19 @@ class _HomePageState extends State<HomePage> {
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                       ),
                       child: const Text("Start Tracking", style: TextStyle(color: Colors.white)),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _navigateToReportPage,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.orange,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                      child: const Text("Generate Weekly Report", style: TextStyle(color: Colors.white)),
                     ),
                   ),
                   const SizedBox(height: 30),

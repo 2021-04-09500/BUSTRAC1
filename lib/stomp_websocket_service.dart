@@ -14,7 +14,7 @@ class StompWebSocketService {
   }) {
     _client = StompClient(
       config: StompConfig.SockJS(
-        url: 'http://192.168.100.3:8081/ws',  // Your backend WS endpoint
+        url: 'http://192.168.100.9:8081/ws',  // Your backend WS endpoint
         onConnect: (StompFrame frame) {
           print('✅ STOMP connected');
           _client?.subscribe(
