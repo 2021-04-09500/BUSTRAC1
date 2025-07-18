@@ -1,0 +1,200 @@
+.container {
+  padding: 20px;
+  background-color: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  font-family: "Inter", sans-serif;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 600;
+  margin-bottom: 20px;
+  text-align: center;
+  color: var(--text);
+}
+
+.layout {
+  display: flex;
+  gap: 20px;
+}
+
+.busSelection {
+  flex: 1;
+  background-color: var(--bgSoft);
+  border-radius: 10px;
+  padding: 20px;
+}
+
+.busSelection h2 {
+  font-size: 1.2rem;
+  font-weight: 500;
+  margin-bottom: 20px;
+  color: var(--text);
+}
+
+.busDropdown {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  background-color: var(--bgSoft);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.busDropdown:focus {
+  outline: none;
+  border-color: orange;
+}
+
+.busInfo {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: var(--bgSoft);
+  border-radius: 5px;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.busInfo p {
+  margin: 5px 0;
+  color: var(--text);
+}
+
+.busInfo .icon {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.busInfo .icon svg {
+  width: 24px;
+  height: 24px;
+  fill: orange;
+}
+
+.mainContent {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.snapshotSection {
+  background-color: var(--bgSoft);
+  border-radius: 10px;
+  padding: 20px;
+}
+
+.snapshotSection h2 {
+  font-size: 1.2rem;
+  font-weight: 500;
+  margin-bottom: 20px;
+  color: var(--text);
+}
+
+.videoContainer {
+  position: relative;
+  margin-bottom: 15px;
+}
+
+.fullScreenButton {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 8px 12px;
+  background-color: orange;
+  color: var(--text);
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.fullScreenButton:hover {
+  background-color: darkorange;
+}
+
+.note {
+  margin: 8px 0;
+  font-size: 0.95rem;
+  color: var(--text);
+  text-align: center;
+}
+
+.liveStreamControls {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.startButton,
+.stopButton {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  color: var(--text);
+  transition: background-color 0.3s ease;
+}
+
+.startButton {
+  background-color: orange;
+}
+
+.startButton:hover {
+  background-color: darkorange;
+}
+
+.stopButton {
+  background-color: #dc3545;
+}
+
+.stopButton:hover {
+  background-color: #c82333;
+}
+
+.startButton:disabled,
+.stopButton:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+@media (max-width: 1024px) {
+  .layout {
+    flex-direction: column;
+  }
+
+  .busSelection,
+  .mainContent {
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 10px;
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
+
+  .fullScreenButton {
+    top: 5px;
+    right: 5px;
+    padding: 6px 10px;
+    font-size: 0.9em;
+  }
+}
+
+.error {
+  background-color: #dc3545;
+  color: var(--text);
+  padding: 10px;
+  border-radius: 5px;
+  margin-bottom: 20px;
+  text-align: center;
+}

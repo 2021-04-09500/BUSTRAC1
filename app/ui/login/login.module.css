@@ -1,0 +1,205 @@
+.container {
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    background-image: url('/orange.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    padding: 40px;
+}
+
+.formWrapper {
+    max-width: 400px;
+    width: 100%;
+    background-color: rgba(255, 255, 255, 0.95);
+    border-radius: 15px;
+    padding: 40px;
+    text-align: center;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    backdrop-filter: blur(5px);
+    margin-right: 100px;
+}
+
+.title {
+    font-size: 2rem;
+    font-weight: 600;
+    color: #333333;
+    margin-bottom: 5px;
+}
+
+.subtitle {
+    font-size: 1rem;
+    color: #666666;
+    margin-bottom: 20px;
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.input {
+    padding: 12px;
+    background-color: #ffffff;
+    color: #333333;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.input::placeholder {
+    color: #999999;
+}
+
+.input:focus {
+    outline: none;
+    border-color: #FFA500;
+    box-shadow: 0 0 8px rgba(255, 165, 0, 0.3);
+}
+
+.formOptions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+    color: #666666;
+    margin-bottom: 10px;
+}
+
+.rememberMe {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.rememberMe input {
+    accent-color: #FFA500;
+}
+
+.forgotPassword {
+    color: #FFA500;
+    text-decoration: none;
+}
+
+.forgotPassword:hover {
+    color: #FF8C00;
+    text-decoration: underline;
+}
+
+.loginButton {
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    background-color: #FFA500;
+    color: #ffffff;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s ease, background-color 0.3s ease;
+}
+
+.loginButton:hover {
+    transform: translateY(-2px);
+    background-color: #FF8C00;
+}
+
+.googleButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background-color: #ffffff;
+    color: #333333;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: transform 0.2s ease, background-color 0.3s ease;
+    margin-bottom: 20px;
+}
+
+.googleButton:hover {
+    transform: translateY(-2px);
+    background-color: #f5f5f5;
+}
+
+.googleIcon {
+    font-size: 1.2rem;
+    color: #db4437;
+}
+
+.signup {
+    text-align: center;
+    font-size: 0.9rem;
+    color: #666666;
+}
+
+.signup a {
+    color: #FFA500;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.signup a:hover {
+    color: #FF8C00;
+    text-decoration: underline;
+}
+
+.error {
+    color: crimson;
+    font-size: 0.9rem;
+    text-align: center;
+    margin-bottom: 10px;
+    background-color: rgba(220, 20, 60, 0.1);
+    padding: 5px;
+    border-radius: 5px;
+}
+
+[data-theme="light"] .formWrapper {
+    background-color: rgba(255, 255, 255, 0.95);
+}
+
+[data-theme="light"] .title,
+[data-theme="light"] .subtitle,
+[data-theme="light"] .formOptions,
+[data-theme="light"] .signup,
+[data-theme="light"] .input,
+[data-theme="light"] .googleButton,
+[data-theme="light"] .loginButton {
+    color: #333333;
+}
+
+[data-theme="light"] .input {
+    background-color: #ffffff;
+    border-color: #d1d5db;
+}
+
+[data-theme="light"] .input::placeholder {
+    color: #999999;
+}
+
+[data-theme="light"] .googleButton {
+    background-color: #ffffff;
+    border-color: #d1d5db;
+}
+
+@media (max-width: 768px) {
+    .container {
+        justify-content: center;
+        padding: 20px;
+    }
+
+    .formWrapper {
+        max-width: 100%;
+        margin-right: 0;
+    }
+}
