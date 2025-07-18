@@ -1,0 +1,86 @@
+import serial import threading import time 
+from flask import Flask, Response, render_template_string, jsonify import cv2 
+from RPLCD.i2c import CharLCD 
+ 
+# === LCD Setup === 
+lcd = CharLCD('PCF8574', 0x27)  # Use `sudo i2cdetect -y 1` to verify your LCD I2C address 
+ 
+# === GPS Parser === def convert_to_decimal(degree_min, direction): 
+    d = int(float(degree_min) / 100)     m = float(degree_min) - d * 100     decimal = d + m / 60     if direction in ['S', 'W']:         decimal = -decimal 
+    return decimal 
+ 
+# === Shared Variables === 
+latest_coords = {"lat": "N/A", "lon": "N/A"} lock = threading.Lock() 
+ 
+def parse_gps(line):     if line.startswith('$GPRMC') or line.startswith('$GPGGA'):         parts = line.split(',') 
+         try: 
+            lat_raw = parts[3] if line.startswith('$GPRMC') else parts[2]             lat_dir = parts[4] if line.startswith('$GPRMC') else parts[3]             lon_raw = parts[5] if line.startswith('$GPRMC') else parts[4]             lon_dir = parts[6] if line.startswith('$GPRMC') else parts[5] 
+ 
+            if lat_raw and lon_raw: 
+                latitude = convert_to_decimal(lat_raw, lat_dir)                 longitude = convert_to_decimal(lon_raw, lon_dir) 
+                 with lock: 
+                    latest_coords["lat"] = f"{latitude:.6f}"                     latest_coords["lon"] = f"{longitude:.6f}" 
+ 
+                # Show on LCD                 lcd.clear()                 lcd.write_string(f"Lat:{latitude:.3f}")                 lcd.crlf() 
+                lcd.write_string(f"Lon:{longitude:.3f}") 
+ 
+                print(f"[LCD] Lat:{latitude:.3f} | Lon:{longitude:.3f}") 
+                print(f"[COORDS] Latitude: {latitude:.6f}, Longitude: {longitude:.6f}")             else:
+                print("[WARN] GPS data present but incomplete")         except Exception as e:             print(f"[ERROR] Parsing GPS: {e}") 
+ 
+# === Thread: Serial Reader === def gps_reader():     while True:         try:             with serial.Serial('/dev/serial0', 9600, timeout=1) as ser:                 while True: 
+                    line = ser.readline().decode(errors='ignore').strip()                     if line: 
+                        print(f"[GPS RAW] {line}") 
+                        parse_gps(line)         except Exception as e:             print(f"[ERROR] Serial failed: {e}") 
+            time.sleep(2) 
+ 
+# === Start GPS Thread === 
+threading.Thread(target=gps_reader, daemon=True).start() 
+ 
+# === Camera Stream === 
+camera = cv2.VideoCapture(0) 
+ 
+def generate_frames():     while True:         success, frame = camera.read()         if not success: 
+            break 
+        _, buffer = cv2.imencode('.jpg', frame)         frame = buffer.tobytes()         yield (b'--frame\r\n' 
+               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n') 
+ 
+# === Flask App === 
+app = Flask(__name__) 
+ 
+@app.route('/') def index(): 
+    return render_template_string(''' 
+ <!DOCTYPE html> 
+    <html> 
+    <head> 
+        <title>Live GPS and Camera</title> 
+        <style> 
+            body { font-family: Arial; text-align: center; background-color: #eee; } 
+            #coords { font-size: 18px; margin-top: 20px; } 
+            img { width: 90%; max-width: 600px; border: 3px solid #444; }         </style> 
+        <script>
+            function updateCoords() {                 fetch('/gps') 
+                .then(response => response.json()) 
+                .then(data => { 
+                    document.getElementById("coords").innerText =  
+                        "Latitude: " + data.lat + ", Longitude: " + data.lon; 
+                }); 
+            } 
+            setInterval(updateCoords, 1000); 
+        </script> 
+    </head> 
+    <body> 
+        <h1>Live Feed + GPS</h1> 
+        <img src="/video_feed"> 
+        <div id="coords">Latitude: N/A, Longitude: N/A</div> 
+    </body> 
+    </html> 
+    ''') 
+ 
+@app.route('/video_feed') def video_feed():     return Response(generate_frames(), 
+                    mimetype='multipart/x-mixed-replace; boundary=frame') 
+ 
+@app.route('/gps') def gps():     with lock:         return jsonify(lat=latest_coords["lat"], lon=latest_coords["lon"]) 
+ 
+if __name__ == '__main__': 
+    app.run(host='0.0.0.0', port=5000) 
