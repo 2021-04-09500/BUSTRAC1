@@ -1,0 +1,10 @@
+# Ignore IDE files
+.idea/
+*.iml
+
+# Ignore build artifacts
+target/
+.mvn/wrapper/maven-wrapper.jar
+
+
+ /src/test/
