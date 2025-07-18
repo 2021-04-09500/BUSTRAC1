@@ -1,0 +1,97 @@
+.container {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 20px;
+    padding: 20px;
+    background-color: var(--bg); 
+    color: var(--text); 
+}
+
+.routesListCard, .mapCard, .capacityCard {
+    background-color: var(--bgSoft); 
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.cardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.searchBar input {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: var(--bgSoft);
+    color: var(--text); 
+}
+
+.actions {
+    margin-bottom: 20px;
+}
+
+.newRouteButton, .importButton, .exportButton {
+    padding: 8px 12px;
+    background-color: orange; 
+    color: var(--text);
+    border: none;
+    border-radius: 5px;
+    margin-right: 10px;
+    cursor: pointer;
+}
+
+.routesTable {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.routesTable th, .routesTable td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+.viewButton {
+    background: none; 
+    border: none;
+    cursor: pointer;
+    padding: 5px; 
+    color: lightgrey;
+    font-size: 1.2rem
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.viewButton:hover {
+    color: indigo; 
+}
+
+.mapCard {
+    display: flex;
+    flex-direction: column;
+}
+
+.capacityCard {
+    grid-column: 1 / -1; 
+    text-align: center;
+}
+
+.localLoader {
+    position: relative;
+    height: 100px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: transparent;
+}
+
+.localLoader .loaderContainer {
+    position: relative;
+    width: auto;
+    height: auto;
+    background-color: transparent;
+}

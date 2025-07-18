@@ -1,0 +1,95 @@
+.container {
+    background-color: var(--bgSoft);
+    padding: 20px;
+    border-radius: 10px;
+    margin-top: 20px;
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form input, .form textarea, .form select {
+    padding: 20px;
+    background-color: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--textSoft);
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+.button {
+    padding: 10px;
+    background-color: orange;
+    color: var(--text);
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.button:hover {
+    background-color: darkorange;
+    transition: background-color 0.3s ease;
+}
+
+
+.select {
+    width: 30%;
+    border: 1px solid var(--textSoft);
+    border-radius: 5px;
+    padding: 0.25em 0.5em;
+    font-size: 1.25rem;
+    font-weight: 600;
+    cursor: pointer;
+    color: var(--text);
+    background-image: linear-gradient(to bottom, var(--bgSoft), var(--bg) 50%);
+}
+
+.form input:focus, .form textarea:focus, .select:focus {
+    outline: none;
+    border-color: orange;
+    box-shadow: 0 0 5px rgba(0, 128, 128, 0.3); 
+}   
+
+.mapContainer {
+    width: 100%;
+    height: 300px;
+    margin-top: 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+}
+
+
+
+/* .container {
+    background-color: var(--bgSoft);
+    padding: 20px;
+    border-radius: 10px;
+    margin-top: 20px;
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form input, .form textarea {
+    padding: 20px;
+    background-color: var(--bg);
+    color: var(--text);
+    border: 2px solid #2e374a;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+.button {
+    padding: 10px;
+    background-color: teal;
+    color: var(--text);
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+} */
